@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=yes, viewport-fit=cover">
+    <title>物种卡牌：男人图鉴 · 成就系统</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+            user-select: none;
+        }
+
+        body {
+            background: #FCF5E6;
+            font-family: 'Inter', 'Segoe UI', system-ui, -apple-system, 'Courier New', monospace;
+            min-height: 100vh;
+            padding: 0 1rem 5rem 1rem;
+            color: #3E2C1F;
+        }
+
+        .container {
+            max-width: 1300px;
+            margin: 0 auto;
+        }
+
+        .game-header {
+            background: #4A2C1A;
+            margin: 0 -1rem 1rem -1rem;
+            padding: 1rem 1rem 0.8rem 1rem;
+            text-align: center;
+            border-bottom: 3px solid #E3A741;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+
+        h1 {
+            font-size: 1.9rem;
+            font-weight: 700;
+            letter-spacing: 2px;
+            color: #FFE6B3;
+            text-shadow: 0 2px 4px rgba(0,0,0,0.2);
+            white-space: nowrap;
+        }
+        @media (max-width: 520px) {
+            h1 { font-size: 1.3rem; letter-spacing: 1px; white-space: normal; word-break: keep-all; }
+        }
+
+        .disclaimer {
+            background: #4A2C1A;
+            margin: 0.5rem -1rem -0.8rem -1rem;
+            padding: 8px 1rem 12px 1rem;
+            font-size: 0.7rem;
+            color: #F5E2C1;
+            text-align: center;
+            font-style: italic;
+            line-height: 1.3;
+            border-top: 1px solid #E3A74155;
+        }
+        .disclaimer span {
+            color: #FFD966;
+        }
+
+        .stats-panel {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: space-between;
+            align-items: center;
+            gap: 0.8rem;
+            background: rgba(235, 215, 175, 0.7);
+            backdrop-filter: blur(8px);
+            border-radius: 48px;
+            padding: 0.5rem 1.2rem;
+            margin-bottom: 1.8rem;
+            border: 1px solid #E2C28B;
+        }
+
+        .stat {
+            background: #FFF2DE;
+            padding: 0.2rem 1rem;
+            border-radius: 40px;
+            font-weight: 600;
+            font-size: 0.9rem;
+            color: #5C3E1F;
+        }
+
+        .stat span {
+            color: #C97E2A;
+            font-size: 1.2rem;
+            margin-right: 5px;
+        }
+
+        .reset-icon {
+            background: #EAD6B0;
+            padding: 4px 14px;
+            border-radius: 40px;
+            cursor: pointer;
+            font-size: 0.75rem;
+            transition: 0.2s;
+            border: 1px solid #C9AA71;
+            color: #5A3E1C;
+        }
+        .reset-icon:active { transform: scale(0.96); background: #D8BD8A; }
+
+        .achievement-strip {
+            display: flex;
+            flex-wrap: wrap;
+            gap: 5px;
+        }
+        .milestone {
+            font-size: 0.6rem;
+            background: #EDE0C8;
+            padding: 2px 8px;
+            border-radius: 30px;
+            color: #7A5A3A;
+        }
+        .milestone.unlock {
+            background: #E3A741;
+            color: #2D1E0F;
+            font-weight: bold;
+            box-shadow: 0 0 4px #E3A741;
+        }
+
+        .page {
+            transition: opacity 0.2s;
+        }
+        .hidden {
+            display: none;
+        }
+
+        .draw-stage {
+            background: rgba(235, 220, 190, 0.6);
+            border-radius: 48px;
+            padding: 1.2rem;
+            margin-bottom: 1rem;
+            border: 1px solid #E8D2A4;
+        }
+
+        .card {
+            background: #FFFBF0;
+            border-radius: 32px;
+            padding: 1.5rem;
+            border: 1px solid #E2BC7C;
+            box-shadow: 0 12px 20px -8px rgba(100, 70, 30, 0.15);
+            color: #3E2C1F;
+            position: relative;
+        }
+
+        .welcome-card {
+            background: #FFFBF0;
+            border-radius: 32px;
+            padding: 1.8rem 1.5rem;
+            border: 1px solid #E2BC7C;
+            box-shadow: 0 12px 20px -8px rgba(100, 70, 30, 0.15);
+            text-align: center;
+            position: relative;
+            min-height: 260px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+        .welcome-text {
+            font-size: 1.3rem;
+            font-weight: 600;
+            color: #B45F2B;
+            margin-bottom: 1rem;
+        }
+        .welcome-sub {
+            font-size: 0.9rem;
+            color: #7A5A3A;
+        }
+        .tip-corner {
+            position: absolute;
+            bottom: 16px;
+            right: 20px;
+            font-size: 0.7rem;
+            color: #C97E2A;
+            background: rgba(255,245,220,0.8);
+            padding: 4px 12px;
+            border-radius: 30px;
+            font-style: italic;
+            max-width: 70%;
+            text-align: right;
+            line-height: 1.3;
+        }
+
+        .card-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            flex-wrap: wrap;
+            border-bottom: 2px dashed #E2BC7C;
+            padding-bottom: 12px;
+            margin-bottom: 16px;
+        }
+
+        .card-name {
+            font-size: 1.5rem;
+            font-weight: 800;
+            color: #B45F2B;
+        }
+
+        .card-number {
+            font-family: monospace;
+            background: #EDE0C8;
+            padding: 4px 10px;
+            border-radius: 30px;
+            font-size: 0.8rem;
+            color: #5C3E1F;
+        }
+
+        .orig-rarity {
+            display: inline-block;
+            background: #F1E5D2;
+            padding: 4px 12px;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: bold;
+            margin-bottom: 12px;
+            color: #8B6946;
+        }
+
+        .skill, .difficulty, .tame {
+            margin-top: 14px;
+            background: #F8F0E2;
+            padding: 12px 14px;
+            border-radius: 24px;
+            font-size: 0.85rem;
+            line-height: 1.4;
+            border-left: 4px solid #E3A741;
+        }
+        .skill span, .difficulty span, .tame span {
+            font-weight: bold;
+            color: #C97E2A;
+            display: inline-block;
+            width: 80px;
+        }
+
+        .collection-header, .achievements-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: baseline;
+            margin: 0.5rem 0 1rem;
+            flex-wrap: wrap;
+            gap: 10px;
+        }
+        .pagination {
+            display: flex;
+            gap: 8px;
+            justify-content: center;
+            align-items: center;
+            margin: 20px 0 10px;
+            flex-wrap: wrap;
+        }
+        .page-btn {
+            background: #EDE0C8;
+            border: none;
+            padding: 6px 14px;
+            border-radius: 30px;
+            color: #7A5A3A;
+            font-weight: bold;
+            cursor: pointer;
+            transition: 0.1s;
+        }
+        .page-btn.active {
+            background: #E3A741;
+            color: #2D1E0F;
+            box-shadow: 0 0 4px #E3A741;
+        }
+        .page-btn:active { transform: scale(0.96); }
+
+        .pokedex-grid, .achievements-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(170px, 1fr));
+            gap: 18px;
+            padding: 6px 4px;
+            min-height: 400px;
+        }
+        .dex-card, .achieve-card {
+            background:linear-gradient(145deg, #FFFCF5, #F8F0E2);
+            backdrop-filter: blur(4px);
+            border-radius: 24px;
+            padding: 1rem 0.8rem;
+            border: 1px solid #E8CE9C;
+            cursor: pointer;
+            transition: all 0.15s;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            text-align: center;
+        }
+        .achieve-card {
+            cursor: default;
+            min-height: 160px;
+        }
+        .dex-card:hover {
+        transform: translateY(-8px); /* 向上移动8像素 */
+        box-shadow: 0 15px 25px rgba(100, 70, 30, 0.15); /* 阴影变大变模糊 */
+        /* 图鉴卡片中的图片 */
+.dex-card img {
+    width: 100%;                /* 图片宽度占满卡片 */
+    height: auto;               /* 高度自动，保持原比例 */
+    max-width: 180px;           /* 限制最大宽度，避免太大（可按需调整） */
+    border-radius: 16px;
+    margin-bottom: 12px;
+    object-fit: contain;        /* 确保图片完整显示，不裁剪 */
+}
+
+/* 抽卡页面的大图 */
+.card img {
+    max-width: 90%;
+    height: auto;
+    border-radius: 24px;
+    display: block;
+    margin: 0 auto 16px auto;
+}
+
+/* 弹窗内的大图 */
+.modal-content img {
+    max-width: 100%;
+    border-radius: 20px;
+    margin-bottom: 16px;
+}
+}
+        .dex-card.collected {
+            border-left: 5px solid #E3A741;
+            background: #FFF7E8;
+        }
+        .dex-card.uncollected {
+            opacity: 0.7;
+            filter: grayscale(0.1);
+        }
+        .achieve-card.locked {
+            opacity: 0.6;
+            filter: grayscale(0.3);
+            background: #F5EFE0;
+        }
+        .achieve-card.unlocked {
+            border-left: 5px solid #E3A741;
+            background: #FFF7E8;
+        }
+        .dex-card:active { transform: scale(0.97); }
+        .dex-name, .achieve-name {
+            font-size: 1.05rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #B45F2B;
+            word-break: break-word;
+        }
+        .dex-number, .achieve-desc {
+            font-size: 0.7rem;
+            color: #9B7B53;
+            margin-bottom: 6px;
+            line-height: 1.3;
+        }
+        .dex-rarity, .achieve-status {
+            font-size: 0.7rem;
+            background: #F1E5D2;
+            display: inline-block;
+            padding: 2px 12px;
+            border-radius: 30px;
+            color: #7A5A3A;
+        }
+
+        /* 中央弹出成就浮层 */
+        .achievement-popup {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: #2D2418;
+            backdrop-filter: blur(20px);
+            border-radius: 48px;
+            padding: 24px 32px;
+            text-align: center;
+            z-index: 3000;
+            border: 2px solid #E3A741;
+            box-shadow: 0 20px 35px rgba(0,0,0,0.4);
+            max-width: 85%;
+            width: 460px;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+            pointer-events: none;
+        }
+        .achievement-popup.show {
+            opacity: 1;
+            pointer-events: auto;
+        }
+        .popup-title {
+            font-size: 1.8rem;
+            font-weight: bold;
+            color: #FFD966;
+            margin-bottom: 12px;
+        }
+        .popup-subtitle {
+            font-size: 1.2rem;
+            color: #FFE6B3;
+            margin-bottom: 16px;
+        }
+        .popup-message {
+            font-size: 0.95rem;
+            color: #F5E2C1;
+            line-height: 1.4;
+            white-space: pre-line;
+        }
+        /* 临时提示框样式 */
+        .toast-msg {
+            position: fixed;
+            bottom: 80px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: #2C2418;
+            backdrop-filter: blur(16px);
+            padding: 8px 20px;
+            border-radius: 60px;
+            color: #FFE6B3;
+            font-weight: bold;
+            font-size: 0.85rem;
+            z-index: 2001;
+            pointer-events: none;
+            border-left: 3px solid #E3A741;
+            white-space: nowrap;
+        }
+        @media (max-width: 550px) {
+            .achievement-popup { width: 90%; padding: 20px; }
+            .popup-title { font-size: 1.4rem; }
+            .toast-msg { white-space: normal; max-width: 85%; text-align: center; }
+        }
+
+        .modal {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0,0,0,0.7);
+            backdrop-filter: blur(8px);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            z-index: 2000;
+            visibility: hidden;
+            opacity: 0;
+            transition: 0.2s;
+        }
+        .modal.show {
+            visibility: visible;
+            opacity: 1;
+        }
+        .modal-content {
+            background: #FFFCF5;
+            max-width: 90%;
+            width: 450px;
+            border-radius: 40px;
+            padding: 1.8rem;
+            border: 1px solid #E3A741;
+            position: relative;
+            max-height: 80vh;
+            overflow-y: auto;
+            color: #3E2C1F;
+        }
+        .modal-close {
+            position: absolute;
+            top: 12px;
+            right: 20px;
+            font-size: 28px;
+            cursor: pointer;
+            color: #C97E2A;
+        }
+        .modal-card-name {
+            font-size: 1.5rem;
+            font-weight: bold;
+            margin-bottom: 8px;
+            color: #B45F2B;
+        }
+
+        .bottom-nav {
+            position: fixed;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            background: rgba(250, 240, 220, 0.96);
+            backdrop-filter: blur(12px);
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            padding: 10px 20px;
+            border-top: 1px solid #E2BC7C;
+            z-index: 100;
+        }
+        .nav-btn {
+            flex: 0 1 200px;
+            background: #D8BD8A;
+            border: none;
+            padding: 12px 0;
+            font-size: 1.1rem;
+            font-weight: bold;
+            border-radius: 40px;
+            color: #3A2416;
+            font-family: monospace;
+            cursor: pointer;
+            transition: 0.1s;
+            text-align: center;
+        }
+        .nav-btn:active { transform: scale(0.97); background: #C9AA71; }
+        .nav-btn.active-nav {
+            background: #A5712C;
+            color: #FFF2DE;
+            box-shadow: 0 2px 8px rgba(165,113,44,0.5);
+        }
+        @media (max-width: 600px) {
+            .pokedex-grid, .achievements-grid { grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); gap: 12px; }
+            .dex-card, .achieve-card { min-height: 170px; padding: 0.8rem 0.5rem; }
+            .dex-name, .achieve-name { font-size: 0.9rem; }
+            .nav-btn { flex: 1; max-width: none; }
+            .welcome-text { font-size: 1rem; }
+            .tip-corner { font-size: 0.6rem; bottom: 8px; right: 12px; }
+        }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="game-header">
+        <h1>⚡ 物种卡牌 · 男人图鉴 ⚡</h1>
+        <div class="disclaimer">
+            📖 注意：以下内容基于张荞Tiffany写的《男人这种动物》，仅供娱乐。<br>每段感情都是独特的，最终决策权在你。
+        </div>
+    </div>
+
+    <div class="stats-panel">
+        <div class="stat">🎴 抽卡次数 <span id="drawCount">0</span></div>
+        <div class="stat">📖 图鉴 <span id="collectionCount">0</span> / <span id="totalCards">0</span></div>
+        <div class="achievement-strip" id="milestoneWrap"></div>
+        <div class="reset-icon" id="resetBtn">⟳ 重置进度</div>
+    </div>
+
+    <!-- 抽卡页面 -->
+    <div id="drawPage" class="page">
+        <div class="draw-stage">
+            <div id="currentCardArea">
+                <div class="welcome-card">
+                    <div class="welcome-text">🐾 叮咚！动物园今日开放 ——<br>您想先领养哪只『雄性小动物』？</div>
+                    <div class="welcome-sub">✨ 点击「抽卡」解锁物种档案 ✨</div>
+                    <div class="tip-corner">💡 小提示：抽到『蝴蝶男』请立刻拔网线，抽到『石头男』请准备耐心。</div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- 图鉴页面 -->
+    <div id="bookPage" class="page hidden">
+        <div class="collection-header">
+            <span>🗂️ 分页图鉴 · 共35种 (6页)</span>
+            <span style="font-size:0.7rem;">(单击卡片看完整信息)</span>
+        </div>
+        <div class="pokedex-grid" id="pokedexGrid"></div>
+        <div class="pagination" id="paginationControls"></div>
+    </div>
+
+    <!-- 成就页面 -->
+    <div id="achievementPage" class="page hidden">
+        <div class="achievements-header">
+            <span>🏆 成就殿堂 · 集齐物种解锁台词</span>
+            <span style="font-size:0.7rem;">(解锁进度影响成就状态)</span>
+        </div>
+        <div class="achievements-grid" id="achievementsGrid"></div>
+        <div class="pagination" id="achievementPagination"></div>
+    </div>
+</div>
+
+<!-- 底部三个按钮 -->
+<div class="bottom-nav">
+    <button class="nav-btn" id="gotoBookBtn">📖 图鉴</button>
+    <button class="nav-btn" id="drawBottomBtn">🎴 抽卡</button>
+    <button class="nav-btn" id="gotoAchievementBtn">🏆 成就</button>
+</div>
+
+<!-- 卡片详情模态框 -->
+<div id="cardModal" class="modal">
+    <div class="modal-content">
+        <span class="modal-close" id="closeModal">&times;</span>
+        <div id="modalBody"></div>
+    </div>
+</div>
+
+<!-- 成就弹出浮层 (居中5秒) -->
+<div id="achievementPopup" class="achievement-popup">
+    <div class="popup-title">🎖️ 成就解锁</div>
+    <div class="popup-subtitle" id="popupSubtitle"></div>
+    <div class="popup-message" id="popupMessage"></div>
+</div>
+
+<script>
+    // 物种数据 (35种) - 完整保留所有字段，并重新加入简化的稀有度权重映射
+    const SPECIES_DATA = [
+        { id:0, number:"01", name:"软饭寄生虫男", origRarity:"泛滥级", passive:"寄生本能,眼高手低，索取无度，撒谎成性。", difficulty:"吸血风险高,玻璃心MAX，索取无度。", tame:"划定底线，拒绝供养，当场拆穿谎言，劣根不改永久驱逐。" },
+        { id:1, number:"02", name:"火山野兽男", origRarity:"传说级", passive:"情绪极不稳定，受刺激暴力升级，生气会摔砸物品。", difficulty:"言语辱骂易变肉体伤害，控制欲强，隐忍无效", tame:"遇暴即冷血离开，亮法律底牌，保持冷静搜集证据。"},
+        { id:2, number:"03", name:"霸道专制虎男", origRarity:"史诗级", passive:"自我中心，精神操控，打压自尊，情感勒索。", difficulty:"高压控制社交隔离，否定独立能力。", tame:"展现绝对独立，打破洗脑，不卑不亢，反向制衡。"},
+        { id:3, number:"04", name:"花心浪荡蝴蝶男", origRarity:"泛滥级", passive:"广撒网，永远发情期，恐惧平淡，喜欢甜言蜜语。", difficulty:"多线程操作，零成本承诺，谎言成性。", tame:"若即若离保持神秘，绝不吃醋，越在乎他跑得越快。"},
+        { id:4, number:"05", name:"工作狂鹰男", origRarity:"传说级", passive:"价值衡量一切，伴侣工具化，私下打分。", difficulty:"隐形控制，追求成就感高于一切，家庭往往只是背景板。", tame:"不干涉不评价，默默支持，不要无理取闹。"},
+        { id:5, number:"06", name:"野猫男", origRarity:"泛滥级", passive:"肉体永远饥渴，多线操作，先性后爱。", difficulty:"贪欲MAX，情史极长，不能说不。", tame:"定期性健康检查，保持淡然，绝不用爱情改变。" },
+        { id:6, number:"07", name:"两栖男", origRarity:"史诗级", passive:"水陆双栖，正宫情妇切换，影帝话术，利益至上。", difficulty:"掉线风险高，演技值MAX，玻璃心MAX。", tame:"三不原则(不吃醋不依赖不软弱)，抓住核心弱点。"},
+        { id:7, number:"08", name:"寄居蟹男", origRarity:"传说级", passive:"极度自恋精算，寻找宿主共生，利用价值。", difficulty:"卷款潜逃 · 失去价值即冷漠，推卸责任。", tame:"保持独立经济硬实力，财不露白，不签担保。" },
+        { id:8, number:"09", name:"蜃景男", origRarity:"史诗级", passive:"制造幻觉，忽远忽近，借口充足。", difficulty:" 长期未响应，欺骗值MAX。", tame:"不追问不愤怒，延迟回复，不要过早肉体关系。"},
+        { id:9, number:"10", name:"苍蝇男", origRarity:"传说级", passive:"死缠烂打，无视边界，追求夸张。", difficulty:"极难摆脱，因爱生恨机制。", tame:"源头切断，暴露缺点打破滤镜，不心软回应。"},
+        { id:10, number:"11", name:"泥鳅男", origRarity:"泛滥级", passive:" 谎话连篇，承诺恐惧，满嘴跑火车。", difficulty:"远斗智斗勇，欺骗值MAX。", tame:"不接饼只看行，约法三章，正向鼓励诚实。" },
+        { id:11, number:"12", name:"水母男", origRarity:"传说级", passive:"漂浮不安，歇斯底里，小事灾难化。", difficulty:"敏感玻璃心，制造风波验证爱。", tame:"绝对坦诚+情绪隔离，直连通道，不硬碰硬。" },
+        { id:12, number:"13", name:"石头男", origRarity:"传说级", passive:"顽固不化，主观至上，绝不低头。", difficulty:"沟通障碍，掌控欲强。", tame:"以柔克刚，苦肉计，提前预警，不硬碰硬。" },
+        { id:13, number:"14", name:"藤蔓男", origRarity:"泛滥级", passive:"软弱依赖，必须依附强者，逃避责任。", difficulty:"永远长不大，推卸烂摊子。", tame:"扮演导师而非家长，耐心引导，不指望成大器。" },
+        { id:14, number:"15", name:"棉花糖男", origRarity:"传说级", passive:"内心软弱，不懂拒绝，抗压力极差。", difficulty:"甜度超标，遇事只会抱怨，意志力为零。", tame:"主动宣示主权，做避风港，不鞭策他向上。" },
+        { id:15, number:"16", name:"感应器男", origRarity:"传说级", passive:"神经质强迫症，秩序洁癖。", difficulty:"排雷专家，情绪崩溃歇斯底里。", tame:"配合演出+认错，摸清规则，不硬刚。" },
+        { id:16, number:"17", name:"铁公鸡男", origRarity:"泛滥级", passive:"小气抠门，精密计算占便宜。", difficulty:"缺乏情趣，过度节省。", tame:"比他还厚脸皮，现实教育，设立消费底线。" },
+        { id:17, number:"18", name:"麻雀男", origRarity:"泛滥级", passive:"兄弟如手足，依赖兄弟团。", difficulty:" 义气值MAX，家庭观念淡薄。", tame:"打入内部，以退为进，共享协议不拆散兄弟。" },
+        { id:18, number:"19", name:"流浪犬男", origRarity:"泛滥级", passive:"思想巨人行动矮子，不负责任。", difficulty:"抗压零，财务黑洞。", tame:"包办后勤+财务监管，陪他去流浪。"},
+        { id:19, number:"20", name:"猫男", origRarity:"传说级", passive:"佛系随缘，责任感趋零。", difficulty:"慢性折磨，安逸满足，缺乏志向。", tame:"成为密友推他一把，经济隔离不给他钱。"},
+        { id:20, number:"21", name:"眼镜蛇男", origRarity:"史诗级", passive:"刻薄自私，言语利刃，不知感恩。", difficulty:"无法用爱感化，欺软怕硬。", tame:"建立绝对权威野蛮镇压，坚守尊严底线。" },
+        { id:21, number:"22", name:"皮鼓男", origRarity:"泛滥级", passive:"欺软怕恶，窝里横，依赖寄生。", difficulty:"高压警戒，暴躁易怒，示弱更嚣张。", tame:"重拳出击以暴制暴，守住底线，不能百依百顺。" },
+        { id:22, number:"23", name:"鬼针草男", origRarity:"传说级", passive:"强力粘附，偏执占有，分手后跟踪骚扰。", difficulty:"极度危险，暴力循环，妄想症。", tame:"物理隔离+医疗干预，理性沟通训练。" },
+        { id:23, number:"24", name:"熊猫男", origRarity:"泛滥级", passive:"节能休眠，穴居死宅，社交懒癌，依赖。", difficulty:"慢性消耗，缺乏情趣，网络沉迷。", tame:"主动投喂计划快乐，接纳低能耗状态。" },
+        { id:24, number:"25", name:"气球男", origRarity:"泛滥级", passive:"虚张声势，吹嘘成瘾，谎造人设，虚荣膨胀。", difficulty:"易燃易爆，经不起细查，怕被比下去。", tame:"冷漠无视降维打击，当众戳破牛皮。" },
+        { id:25, number:"26", name:"野猪男", origRarity:"泛滥级", passive:"懒惰邋遢，即时行乐，责任绝缘。", difficulty:"从不规划，自恋值MAX。", tame:"军事化管理+保姆监督，停止过度服务。" },
+        { id:26, number:"27", name:"孔雀男", origRarity:"传说级", passive:"虚荣自恋，外表炫耀，心灵肤浅。", difficulty:"依赖外表虚荣，浅层生存。", tame:"镜像迎合掌控高位，满足虚荣心。" },
+        { id:27, number:"28", name:"延长线男", origRarity:"史诗级", passive:"双性恋属性，多情流动。", difficulty:"极不稳定，偷腥几率大，流动性强。", tame:"全方位吸引力，知己策略，不试图独占。" },
+        { id:28, number:"29", name:"太极男", origRarity:"传说级", passive:"表里不一，暧昧拒绝承诺。", difficulty:"虚伪狡猾，忠诚度极低。", tame:"绝对清醒反向拿捏，打破砂锅问到底。" },
+        { id:29, number:"30", name:"烟花男", origRarity:"传说级", passive:"天马行空，光说不练，幻想逃避。", difficulty:"易燃易爆，玻璃心，活在幻想中。", tame:"顺毛捋+落地引导，去敏化训练不吓他。" },
+        { id:30, number:"31", name:"沟鼠男", origRarity:"???", passive:"暗影潜行，窥私狂，边界感缺失，翻隐私。", difficulty:"极度高危，信任破产，偷窃倾向。", tame:"物理隔绝雷霆震怒，道德碾压，带看心理医生。" },
+        { id:31, number:"32", name:"针眼男", origRarity:"???", passive:"心胸狭窄,斤斤计较,嫉妒心MAX。", difficulty:"小心眼，霸道任性。", tame:"降维包容情绪压制，不指责小心眼。" },
+        { id:32, number:"33", name:"琉璃男", origRarity:"传说级", passive:"虚假璀璨，表象华丽，缺乏内核，依赖家庭。", difficulty:"诱惑多，历史负债。", tame:"独立断奶，撕开滤镜长期观察。" },
+        { id:33, number:"34", name:"木头男", origRarity:"传说级", passive:"专注专业，生活白痴，专一可靠。", difficulty:"不懂风情，钝感MAX。", tame:"直球沟通，放弃改造，接受朴实。" },
+        { id:34, number:"35", name:"轮盘男", origRarity:"传说级", passive:"投机好赌，享受刺激，赌性难改。", difficulty:"倾家荡产，侥幸值MAX。", tame:"绝对财务隔离，切断源头，不指望戒赌。" }
+    ];
+
+    const TOTAL = SPECIES_DATA.length;
+    document.getElementById('totalCards').innerText = TOTAL;
+
+    // 成就数据 (7个)
+    const ACHIEVEMENTS = [
+        { threshold: 5, title: "初出茅庐", subtitle: "【恋爱动物园 · 实习饲养员】", message: "恭喜你！已经能分辨出『蝴蝶』和『麻雀』了。请继续保持，不要轻易被投喂。" },
+        { threshold: 10, title: "渐入佳境", subtitle: "【物种多样性保护协会】", message: "厉害了！你已经见过 10 种雄性样本。友情提示：有些物种，看看就好，千万别带回家。" },
+        { threshold: 15, title: "火眼金睛", subtitle: "【鉴渣初级分析师】", message: "这 15 种男人的套路你都门儿清。现在的你，眼里容不下一粒沙子，只容得下金子。" },
+        { threshold: 20, title: "资深专家", subtitle: "【人类驯养高级导师】", message: "20 种！你已经掌握了驯养的精髓。记住：好男人是教出来的，坏男人是滚出来的。" },
+        { threshold: 25, title: "传说级别", subtitle: "【当代灭绝动物见证人】", message: "天呐，这 25 种你居然都遇见过？建议把你的大脑做成标本，放进博物馆供人瞻仰。" },
+        { threshold: 30, title: "究极进化", subtitle: "【佛祖座下童子】", message: "集齐 30 种，说明你已经看破红尘。从此以后，你的心如止水，他的套路如土。" },
+        { threshold: 35, title: "终极隐藏", subtitle: "【孤独终老的哲学家】", message: "全图鉴达成！你已看穿了雄性生物的底层代码。从此山高路远，你独享自由。恭喜你，获得单身贵族终身成就奖！" }
+    ];
+
+    const PAGE_SIZE_CARDS = 6;
+    const TOTAL_PAGES_CARDS = Math.ceil(TOTAL / PAGE_SIZE_CARDS);
+    const ACH_PAGE_SIZE = 3;
+    const TOTAL_PAGES_ACH = Math.ceil(ACHIEVEMENTS.length / ACH_PAGE_SIZE);
+
+    let drawCount = 0;
+    let collectedSet = new Set();
+    let unlockedAchievements = new Set();
+    let currentCardPage = 1;
+    let currentAchPage = 1;
+
+    // 音效
+    let audioCtx = null;
+    function initAudio() { if(!audioCtx && window.AudioContext) audioCtx = new (window.AudioContext || window.webkitAudioContext)(); }
+    function playBeep(freq=880, duration=0.2, volume=0.12) {
+        if(!audioCtx) initAudio();
+        if(!audioCtx) return;
+        if(audioCtx.state === 'suspended') audioCtx.resume().catch(e=>{});
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.type = 'sine';
+        osc.frequency.value = freq;
+        gain.gain.value = volume;
+        osc.start();
+        gain.gain.exponentialRampToValueAtTime(0.0001, audioCtx.currentTime + duration);
+        osc.stop(audioCtx.currentTime + duration);
+    }
+    function playDrawSound() { playBeep(880,0.18,0.1); setTimeout(()=>{ playBeep(660,0.16,0.09); },50); }
+    function playNewCardSound() { playBeep(1318,0.24,0.12); playBeep(1568,0.26,0.1); }
+    function playAchievementSound() { playBeep(1046,0.3,0.15); setTimeout(()=>{ playBeep(1318,0.4,0.12); },100); }
+
+    // 成就弹出
+    function showAchievementPopup(ach) {
+        const popup = document.getElementById('achievementPopup');
+        const subtitleEl = document.getElementById('popupSubtitle');
+        const msgEl = document.getElementById('popupMessage');
+        subtitleEl.innerText = ach.subtitle;
+        msgEl.innerText = ach.message;
+        popup.classList.add('show');
+        playAchievementSound();
+        setTimeout(() => { popup.classList.remove('show'); }, 5000);
+    }
+
+    function checkAndUnlockAchievements() {
+        let num = collectedSet.size;
+        let newlyUnlocked = [];
+        for (let ach of ACHIEVEMENTS) {
+            if (num >= ach.threshold && !unlockedAchievements.has(ach.threshold)) {
+                unlockedAchievements.add(ach.threshold);
+                newlyUnlocked.push(ach);
+            }
+        }
+        newlyUnlocked.sort((a,b)=> a.threshold - b.threshold);
+        for (let ach of newlyUnlocked) showAchievementPopup(ach);
+        updateMilestoneUI();
+        renderAchievementsGrid();
+        saveGame();
+    }
+
+    function updateMilestoneUI() {
+        const container = document.getElementById('milestoneWrap');
+        container.innerHTML = '';
+        const list = [5,10,15,20,25,30,35];
+        let num = collectedSet.size;
+        list.forEach(m => {
+            let unlocked = (num >= m) || (m===35 && num===TOTAL);
+            let span = document.createElement('span');
+            span.className = `milestone ${unlocked ? 'unlock' : ''}`;
+            span.innerText = m===35 ? '全收集' : `${m}种`;
+            container.appendChild(span);
+        });
+    }
+    function renderCurrentCard(card) {
+        const container = document.getElementById('currentCardArea');
+        container.innerHTML = `
+            <div class="card">
+                <div class="card-header">
+                    <div class="card-name">${card.name}</div>
+                    <div class="card-number">${card.number}</div>
+                </div>
+                <div class="orig-rarity">⭐ 稀有度 · ${card.origRarity}</div>
+                <div class="skill"><span>⚡被动技能</span> ${card.passive}</div>
+                <div class="difficulty"><span>⚠️副本难度</span> ${card.difficulty}</div>
+                <div class="tame"><span>📖驯养秘籍</span> ${card.tame}</div>
+            </div>
+        `;
+    }
+
+    function doDraw() {
+        playDrawSound();
+        drawCount++;
+        document.getElementById('drawCount').innerText = drawCount;
+        const drawn = drawByWeight();
+        const wasNew = !collectedSet.has(drawn.id);
+        renderCurrentCard(drawn);
+        if (wasNew) {
+            collectedSet.add(drawn.id);
+            playNewCardSound();
+            showToastMsg(`✨ 图鉴新增 · ${drawn.name} ✨`);
+            renderPagedGrid();
+            checkAndUnlockAchievements();
+        } else {
+            showToastMsg(`🃏 重复物种：${drawn.name}`);
+        }
+        document.getElementById('collectionCount').innerText = collectedSet.size;
+        saveGame();
+        showDrawPage();
+        updateNavActive('draw');
+    }
+
+    function showToastMsg(msg) {
+        let toast = document.querySelector('.toast-msg');
+        if(toast) toast.remove();
+        let div = document.createElement('div');
+        div.className = 'toast-msg';
+        div.innerText = msg;
+        document.body.appendChild(div);
+        setTimeout(()=>{ div.style.opacity='0'; setTimeout(()=>div.remove(),500); },2000);
+    }
+
+   function showCardDetail(card) {
+    const modal = document.getElementById('cardModal');
+    const modalBody = document.getElementById('modalBody');
+    const imgSrc = `images/${card.number}.jpg`;
+    modalBody.innerHTML = `
+        <div style="text-align:center;">
+            <img src="${imgSrc}" alt="${card.name}" style="max-width:100%; border-radius:20px;" onerror="this.src='images/back_placeholder.jpg'">
+        </div>
+        <div class="modal-card-name">${card.number} · ${card.name}</div>
+        <div class="orig-rarity" style="margin-bottom:12px;">⭐ 稀有度 · ${card.origRarity}</div>
+        <div class="modal-detail">
+            <p><strong>⚡ 被动技能</strong><br>${card.passive}</p>
+            <p><strong>⚠️ 副本难度</strong><br>${card.difficulty}</p>
+            <p><strong>📖 驯养秘籍</strong><br>${card.tame}</p>
+        </div>
+    `;
+    modal.classList.add('show');
+    }
+        renderCardPagination();
+        document.getElementById('collectionCount').innerText = collectedSet.size;
+    }
+
+    function renderCardPagination() {
+        const container = document.getElementById('paginationControls');
+        container.innerHTML = '';
+        for (let i = 1; i <= TOTAL_PAGES_CARDS; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            btn.className = `page-btn ${i === currentCardPage ? 'active' : ''}`;
+            btn.addEventListener('click', () => {
+                currentCardPage = i;
+                renderPagedGrid();
+            });
+            container.appendChild(btn);
+        }
+    }
+
+    function renderAchievementsGrid() {
+        const start = (currentAchPage - 1) * ACH_PAGE_SIZE;
+        const end = Math.min(start + ACH_PAGE_SIZE, ACHIEVEMENTS.length);
+        const pageAchs = ACHIEVEMENTS.slice(start, end);
+        const grid = document.getElementById('achievementsGrid');
+        grid.innerHTML = '';
+        pageAchs.forEach(ach => {
+            const unlocked = collectedSet.size >= ach.threshold;
+            const div = document.createElement('div');
+            div.className = `achieve-card ${unlocked ? 'unlocked' : 'locked'}`;
+            div.innerHTML = `
+                <div class="achieve-name">🏅 ${ach.title}</div>
+                <div class="achieve-desc">${ach.subtitle}</div>
+                <div class="achieve-status">${unlocked ? '✓ 已解锁' : '🔒 未解锁'}</div>
+            `;
+            grid.appendChild(div);
+        });
+        renderAchievementPagination();
+    }
+
+    function renderAchievementPagination() {
+        const container = document.getElementById('achievementPagination');
+        container.innerHTML = '';
+        for (let i = 1; i <= TOTAL_PAGES_ACH; i++) {
+            const btn = document.createElement('button');
+            btn.innerText = i;
+            btn.className = `page-btn ${i === currentAchPage ? 'active' : ''}`;
+            btn.addEventListener('click', () => {
+                currentAchPage = i;
+                renderAchievementsGrid();
+            });
+            container.appendChild(btn);
+        }
+    }
+
+    function showCardDetail(card) {
+        const modal = document.getElementById('cardModal');
+        const modalBody = document.getElementById('modalBody');
+        modalBody.innerHTML = `
+            <div class="modal-card-name">${card.number} · ${card.name}</div>
+            <div class="orig-rarity" style="margin-bottom:12px;">⭐ 稀有度 · ${card.origRarity}</div>
+            <div class="modal-detail">
+                <p><strong>⚡ 被动技能</strong><br>${card.passive}</p>
+                <p><strong>⚠️ 副本难度</strong><br>${card.difficulty}</p>
+                <p><strong>📖 驯养秘籍</strong><br>${card.tame}</p>
+            </div>
+        `;
+        modal.classList.add('show');
+    }
+
+    function closeModal() { document.getElementById('cardModal').classList.remove('show'); }
+
+    function showDrawPage() {
+        document.getElementById('drawPage').classList.remove('hidden');
+        document.getElementById('bookPage').classList.add('hidden');
+        document.getElementById('achievementPage').classList.add('hidden');
+        updateNavActive('draw');
+    }
+    function showBookPage() {
+        renderPagedGrid();
+        document.getElementById('drawPage').classList.add('hidden');
+        document.getElementById('bookPage').classList.remove('hidden');
+        document.getElementById('achievementPage').classList.add('hidden');
+        updateNavActive('book');
+    }
+    function showAchievementPage() {
+        renderAchievementsGrid();
+        document.getElementById('drawPage').classList.add('hidden');
+        document.getElementById('bookPage').classList.add('hidden');
+        document.getElementById('achievementPage').classList.remove('hidden');
+        updateNavActive('achievement');
+    }
+
+    function updateNavActive(active) {
+        const drawBtn = document.getElementById('drawBottomBtn');
+        const bookBtn = document.getElementById('gotoBookBtn');
+        const achBtn = document.getElementById('gotoAchievementBtn');
+        drawBtn.classList.remove('active-nav');
+        bookBtn.classList.remove('active-nav');
+        achBtn.classList.remove('active-nav');
+        if (active === 'draw') drawBtn.classList.add('active-nav');
+        else if (active === 'book') bookBtn.classList.add('active-nav');
+        else if (active === 'achievement') achBtn.classList.add('active-nav');
+    }
+
+    function saveGame() {
+        localStorage.setItem('menCard_drawCount', drawCount);
+        localStorage.setItem('menCard_collected', JSON.stringify(Array.from(collectedSet)));
+        localStorage.setItem('menCard_unlockedAchs', JSON.stringify(Array.from(unlockedAchievements)));
+    }
+    function loadGame() {
+        let savedDraw = localStorage.getItem('menCard_drawCount');
+        if(savedDraw !== null) drawCount = parseInt(savedDraw);
+        let savedCol = localStorage.getItem('menCard_collected');
+        if(savedCol !== null) collectedSet = new Set(JSON.parse(savedCol));
+        let savedAchs = localStorage.getItem('menCard_unlockedAchs');
+        if(savedAchs !== null) unlockedAchievements = new Set(JSON.parse(savedAchs));
+        document.getElementById('drawCount').innerText = drawCount;
+        document.getElementById('collectionCount').innerText = collectedSet.size;
+        updateMilestoneUI();
+        if(collectedSet.size > 0) {
+            let anyId = Array.from(collectedSet)[0];
+            let anyCard = SPECIES_DATA.find(c=>c.id === anyId);
+            if(anyCard) renderCurrentCard(anyCard);
+            else renderCurrentCard(SPECIES_DATA[0]);
+        } else {
+            document.getElementById('currentCardArea').innerHTML = `
+                <div class="welcome-card">
+                    <div class="welcome-text">🐾 叮咚！动物园今日开放 ——<br>您想先领养哪只『雄性小动物』？</div>
+                    <div class="welcome-sub">✨ 点击「抽卡」解锁物种档案 ✨</div>
+                    <div class="tip-corner">💡 小提示：抽到『蝴蝶男』请立刻拔网线，抽到『石头男』请准备耐心。</div>
+                </div>
+            `;
+        }
+        showDrawPage();
+        updateNavActive(null);
+    }
+
+    function resetGame() {
+        if(confirm('⚠️ 重置将清空所有抽卡次数、图鉴及成就，无法恢复。确定？')) {
+            drawCount = 0;
+            collectedSet.clear();
+            unlockedAchievements.clear();
+            saveGame();
+            document.getElementById('drawCount').innerText = 0;
+            document.getElementById('collectionCount').innerText = 0;
+            document.getElementById('currentCardArea').innerHTML = `
+                <div class="welcome-card">
+                    <div class="welcome-text">🐾 叮咚！动物园今日开放 ——<br>您想先领养哪只『雄性小动物』？</div>
+                    <div class="welcome-sub">✨ 点击「抽卡」解锁物种档案 ✨</div>
+                    <div class="tip-corner">💡 小提示：抽到『蝴蝶男』请立刻拔网线，抽到『石头男』请准备耐心。</div>
+                </div>
+            `;
+            showToastMsg('数据已清空，新轮回开始');
+            updateMilestoneUI();
+            renderPagedGrid();
+            renderAchievementsGrid();
+            showDrawPage();
+            updateNavActive(null);
+        }
+    }
+
+    document.getElementById('drawBottomBtn').addEventListener('click', () => { doDraw(); });
+    document.getElementById('gotoBookBtn').addEventListener('click', () => { showBookPage(); });
+    document.getElementById('gotoAchievementBtn').addEventListener('click', () => { showAchievementPage(); });
+    document.getElementById('resetBtn').addEventListener('click', () => { resetGame(); });
+    document.getElementById('closeModal').addEventListener('click', closeModal);
+    window.addEventListener('click', (e) => { if(e.target === document.getElementById('cardModal')) closeModal(); });
+
+    window.onload = () => { initAudio(); loadGame(); };
+    document.body.addEventListener('touchstart', ()=>{ if(audioCtx && audioCtx.state === 'suspended') audioCtx.resume(); }, { once: true });
+</script>
+</body>
+</html>
